@@ -35,3 +35,4 @@ barbertime-*.tar
 npm-debug.log
 /assets/node_modules/
 
+postgres-data
