@@ -1,0 +1,14 @@
+version: '4.0'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DATABASE=persistence_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    command: postgres -c 'max_connections=200'
