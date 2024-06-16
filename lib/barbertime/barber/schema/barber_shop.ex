@@ -3,7 +3,7 @@ defmodule Barbertime.Barber.Schema.BarberShop do
 
   import Ecto.Changeset
 
-  alias Barbertime.Barber.Schema.Barber
+  alias Barbertime.Barber.Schema.{Barber, Service}
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
@@ -13,24 +13,23 @@ defmodule Barbertime.Barber.Schema.BarberShop do
           cep: String.t(),
           cnpj: String.t(),
           phone: String.t(),
-          id_barber: Ecto.UUID.t()
+          barber_id: Ecto.UUID.t()
         }
 
-  @fields ~w(name_store adress number cep cnpj phone id_barber)a
+  @fields ~w(name_store adress number cep cnpj phone barber_id)a
 
   @primary_key {:id, :binary_id, autogenerate: true}
-  schema "barbers_shop" do
+  schema "barber_shop" do
     field(:name_store, :string)
     field(:adress, :string)
     field(:number, :integer)
     field(:cep, :string)
     field(:cnpj, :string)
     field(:phone, :string)
-    field(:id_barber, :binary_id)
 
-    belongs_to(:barber, Barber)
+    belongs_to(:barber, Barber, type: :binary_id)
 
-    has_many(:services, Services)
+    has_many(:services, Service)
 
     timestamps()
   end
@@ -46,7 +45,7 @@ defmodule Barbertime.Barber.Schema.BarberShop do
           cep: "62010-140",
           cnpj: Brcpfcnpj.cnpj_generate(),
           phone: "88999999999",
-          id_barber: Ecto.UUID.autogenerate()
+          barber_id: Ecto.UUID.autogenerate()
            })
   """
   @spec changeset(:__MODULE__.t(), map()) :: Ecto.Changeset.t()
@@ -56,8 +55,7 @@ defmodule Barbertime.Barber.Schema.BarberShop do
     |> validate_required(@fields)
     |> unique_constraint([:name_store], name: :barber_shop_name_index)
     |> unique_constraint([:cnpj], name: :barber_shop_cnpj_index)
-    |> foreign_key_constraint(:id_barber)
-    |> assoc_constraint(:barber)
+    |> foreign_key_constraint(:barber_id, name: :barbershop_barber_id_fkey)
     |> validate_cnpj()
     |> validate_format(:cep, ~r/^\d{5}-\d{3}$/, message: "invalid cep")
     |> validate_format(:phone, ~r/^\d{2}\d{4,5}\d{4}$/, message: "invalid phone")
