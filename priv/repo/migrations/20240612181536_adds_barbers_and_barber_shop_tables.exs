@@ -25,7 +25,7 @@ defmodule Barbertime.Repo.Migrations.AddsBarbersAndBarberShopTables do
       add :cnpj, :string, required: true
       add :phone, :string, require: true
 
-      add :id_barber,
+      add :barber_id,
           references(:barber, on_delete: :delete_all, column: :id, type: :uuid),
           null: false
 
@@ -39,9 +39,9 @@ defmodule Barbertime.Repo.Migrations.AddsBarbersAndBarberShopTables do
       add :id, :uuid, primary_key: true
       add :name, :string, required: true
       add :price, :decimal, required: true
-      add :duration_minutes, :integer, required: true
+      add :duration, :integer, required: true
 
-      add :id_barber_shop,
+      add :barber_shop_id,
           references(:barber_shop, on_delete: :delete_all, column: :id, type: :uuid),
           null: false
 

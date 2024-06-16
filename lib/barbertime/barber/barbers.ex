@@ -1,6 +1,4 @@
 defmodule Barbertime.Barber.Barbers do
-  import Ecto.Query
-
   alias Barbertime.Barber
   alias Barbertime.Repo
   alias Barbertime.Barber.Schema.Barber
@@ -23,10 +21,22 @@ defmodule Barbertime.Barber.Barbers do
     |> Repo.insert()
   end
 
-  @spec create_changeset(map()) :: Ecto.Changeset.t() | {:error, Ecto.Changeset.t()}
-  def create_changeset(barber) do
+  @doc """
+  Receive a Barber to create a changeset
+  ## Examples
+      iex> Barbertime.Barber.Barbers.create_chageset(%Barber{
+          first_name: "Barber",
+          last_name: "Cutter",
+          email: "barbercutter@mail.com",
+          password: "Barbercutter@123",
+          confirmed_at: NaiveDateTime.local_now()
+           })
+  """
+
+  @spec create_changeset(Barber.t(), map()) :: Ecto.Changeset.t() | {:error, Ecto.Changeset.t()}
+  def create_changeset(%Barber{} = barber, attrs \\ %{}) do
     barber
-    |> Barber.changeset()
+    |> Barber.changeset(attrs)
   end
 
   @doc """
@@ -60,7 +70,7 @@ defmodule Barbertime.Barber.Barbers do
   def get_barber_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     barber = Repo.get_by(Barber, email: email)
-    if Barber.valid_password?(barber, password), do: barber
+    if Barber.valid_password?(barber, password), do: {:ok, barber}
   end
 
   @doc """
@@ -83,5 +93,23 @@ defmodule Barbertime.Barber.Barbers do
       {:ok, %{barber: barber}} -> {:ok, barber}
       {:error, :barber, changeset, _} -> {:error, changeset}
     end
+  end
+
+  @doc """
+  Deletes barber from database
+
+  ## Examples
+
+      iex> Barbertime.Barber.Barbers.delete("Ecto.UUID")
+      {:ok, %User{}}
+
+      iex> Barbertime.Barber.Barbers.delete("Non existing ID")
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete(id) do
+    Barber
+    |> Repo.get(id)
+    |> Repo.delete()
   end
 end

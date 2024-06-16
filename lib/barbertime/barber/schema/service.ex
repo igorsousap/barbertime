@@ -1,4 +1,4 @@
-defmodule Barbertime.Barber.Schema.Services do
+defmodule Barbertime.Barber.Schema.Service do
   use Ecto.Schema
 
   import Ecto.Changeset
@@ -10,19 +10,18 @@ defmodule Barbertime.Barber.Schema.Services do
           name: String.t(),
           price: Decimal.t(),
           duration: Integer.t(),
-          id_barber_shop: Ecto.UUID.t()
+          barber_shop_id: Ecto.UUID.t()
         }
 
-  @fields ~w(name price duration)a
+  @fields ~w(name price duration barber_shop_id)a
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "services" do
     field(:name, :string)
     field(:price, :decimal)
     field(:duration, :integer)
-    field(:id_barber_shop)
 
-    belongs_to(:barber_shop, BarberShop)
+    belongs_to(:barber_shop, BarberShop, type: :binary_id)
 
     timestamps()
   end
@@ -30,7 +29,7 @@ defmodule Barbertime.Barber.Schema.Services do
   @doc """
   Receive a service map to create a changeset
   Example
-  iex> Barbertime.Barber.Schema.Services.changeset(
+  iex> Barbertime.Barber.Schema.Service.changeset(
           %{
           name: "Hair",
           price: 11.59,
@@ -41,12 +40,15 @@ defmodule Barbertime.Barber.Schema.Services do
 
   @spec changeset(:__MODULE__.t(), map()) :: Ecto.Changeset.t()
   def changeset(service \\ %__MODULE__{}, attrs) do
+    IO.inspect(attrs, label: :changeset_attrs)
+
     service
+    |> IO.inspect(label: :changeset_verify)
     |> cast(attrs, @fields)
     |> validate_required(@fields)
     |> validate_price()
     |> validate_duration()
-    |> foreign_key_constraint(:id_barber_shop)
+    |> foreign_key_constraint(:barber_shop_id, name: :services_barber_shop_id_fkey)
     |> assoc_constraint(:barber_shop)
   end
 
