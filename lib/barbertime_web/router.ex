@@ -1,4 +1,5 @@
 defmodule BarbertimeWeb.Router do
+  alias BarbertimeWeb.BarberPageLive
   use BarbertimeWeb, :router
 
   pipeline :browser do
@@ -16,8 +17,10 @@ defmodule BarbertimeWeb.Router do
 
   scope "/", BarbertimeWeb do
     pipe_through :browser
-
-    get "/", PageController, :home
+    live "/barber/register", BarberRegistrationLive, :new
+    live "/barber/log_in", BarberLoginLive, :new
+    live "/barber/live", BarberPageLive
+    live "/", PageLive, :home
   end
 
   # Other scopes may use custom stacks.

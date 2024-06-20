@@ -21,19 +21,7 @@ defmodule Barbertime.Barber.Barbers do
     |> Repo.insert()
   end
 
-  @doc """
-  Receive a Barber to create a changeset
-  ## Examples
-      iex> Barbertime.Barber.Barbers.create_chageset(%Barber{
-          first_name: "Barber",
-          last_name: "Cutter",
-          email: "barbercutter@mail.com",
-          password: "Barbercutter@123",
-          confirmed_at: NaiveDateTime.local_now()
-           })
-  """
-
-  @spec create_changeset(Barber.t(), map()) :: Ecto.Changeset.t() | {:error, Ecto.Changeset.t()}
+  @spec create_changeset(map()) :: Ecto.Changeset.t() | {:error, Ecto.Changeset.t()}
   def create_changeset(%Barber{} = barber, attrs \\ %{}) do
     barber
     |> Barber.changeset(attrs)
