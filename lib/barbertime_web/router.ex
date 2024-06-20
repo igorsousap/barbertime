@@ -2,6 +2,8 @@ defmodule BarbertimeWeb.Router do
   alias BarbertimeWeb.BarberPageLive
   use BarbertimeWeb, :router
 
+  import BarbertimeWeb.BarberAuth
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -9,6 +11,7 @@ defmodule BarbertimeWeb.Router do
     plug :put_root_layout, html: {BarbertimeWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_barber
   end
 
   pipeline :api do
@@ -42,6 +45,44 @@ defmodule BarbertimeWeb.Router do
 
       live_dashboard "/dashboard", metrics: BarbertimeWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+    end
+  end
+
+  ## Authentication routes
+
+  scope "/", BarbertimeWeb do
+    pipe_through [:browser, :redirect_if_barber_is_authenticated]
+
+    live_session :redirect_if_barber_is_authenticated,
+      on_mount: [{BarbertimeWeb.BarberAuth, :redirect_if_barber_is_authenticated}] do
+      live "/barbers/register", BarberRegistrationLive, :new
+      live "/barbers/log_in", BarberLoginLive, :new
+      live "/barbers/reset_password", BarberForgotPasswordLive, :new
+      live "/barbers/reset_password/:token", BarberResetPasswordLive, :edit
+    end
+
+    post "/barbers/log_in", BarberSessionController, :create
+  end
+
+  scope "/", BarbertimeWeb do
+    pipe_through [:browser, :require_authenticated_barber]
+
+    live_session :require_authenticated_barber,
+      on_mount: [{BarbertimeWeb.BarberAuth, :ensure_authenticated}] do
+      live "/barbers/settings", BarberSettingsLive, :edit
+      live "/barbers/settings/confirm_email/:token", BarberSettingsLive, :confirm_email
+    end
+  end
+
+  scope "/", BarbertimeWeb do
+    pipe_through [:browser]
+
+    delete "/barbers/log_out", BarberSessionController, :delete
+
+    live_session :current_barber,
+      on_mount: [{BarbertimeWeb.BarberAuth, :mount_current_barber}] do
+      live "/barbers/confirm/:token", BarberConfirmationLive, :edit
+      live "/barbers/confirm", BarberConfirmationInstructionsLive, :new
     end
   end
 end

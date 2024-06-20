@@ -35,4 +35,30 @@ defmodule BarbertimeWeb.ConnCase do
     Barbertime.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
+
+  @doc """
+  Setup helper that registers and logs in barbers.
+
+      setup :register_and_log_in_barber
+
+  It stores an updated connection and a registered barber in the
+  test context.
+  """
+  def register_and_log_in_barber(%{conn: conn}) do
+    barber = Barbertime.BarberAccountFixtures.barber_fixture()
+    %{conn: log_in_barber(conn, barber), barber: barber}
+  end
+
+  @doc """
+  Logs the given `barber` into the `conn`.
+
+  It returns an updated `conn`.
+  """
+  def log_in_barber(conn, barber) do
+    token = Barbertime.BarberAccount.generate_barber_session_token(barber)
+
+    conn
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:barber_token, token)
+  end
 end

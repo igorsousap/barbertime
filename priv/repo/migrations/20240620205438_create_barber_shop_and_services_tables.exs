@@ -1,21 +1,7 @@
-defmodule Barbertime.Repo.Migrations.AddsBarbersAndBarberShopTables do
+defmodule Barbertime.Repo.Migrations.CreateBarberShopAndServicesTables do
   use Ecto.Migration
 
   def change do
-    execute "CREATE EXTENSION IF NOT EXISTS citext", ""
-
-    create table(:barber, primary_key: false) do
-      add :id, :uuid, primary_key: true
-      add :first_name, :string, null: false
-      add :last_name, :string, null: false
-      add :email, :citext, null: false
-      add :hashed_password, :string, null: false
-      add :confirmed_at, :naive_datetime
-      timestamps()
-    end
-
-    create unique_index(:barber, [:email], name: :barber_email_index)
-
     create table(:barber_shop, primary_key: false) do
       add :id, :uuid, primary_key: true
       add :name_store, :string, required: true
@@ -26,7 +12,7 @@ defmodule Barbertime.Repo.Migrations.AddsBarbersAndBarberShopTables do
       add :phone, :string, require: true
 
       add :barber_id,
-          references(:barber, on_delete: :delete_all, column: :id, type: :uuid),
+          references(:barbers, on_delete: :delete_all, column: :id, type: :uuid),
           null: false
 
       timestamps()

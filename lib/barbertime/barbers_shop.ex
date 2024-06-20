@@ -1,11 +1,11 @@
-defmodule Barbertime.Barber.BarbersShop do
+defmodule Barbertime.BarbersShop do
   alias Barbertime.Repo
-  alias Barbertime.Barber.Schema.BarberShop
+  alias Barbertime.BarberShop.Shop
 
   @doc """
   Receive a map to register a barber shop on the database
   ## Examples
-      iex> Barbertime.Barber.BarbersShop.create( %{
+      iex> Barbertime.BarbersShop.create( %{
           name_store: "Test Store",
           adress: "Street Test",
           number: 99,
@@ -18,14 +18,14 @@ defmodule Barbertime.Barber.BarbersShop do
   @spec create(map()) :: {:ok, BarberShop.t()} | {:error, Ecto.Changeset.t()}
   def create(attrs) do
     attrs
-    |> BarberShop.changeset()
+    |> Shop.changeset()
     |> Repo.insert()
   end
 
   @doc """
   Receive a Barber shop to create a changeset
   ## Examples
-      iex> Barbertime.Barber.BarbersShop.create_changeset(%BarberShop{
+      iex> Barbertime.BarbersShop.create_changeset(%BarberShop{
           name_store: "Test Store",
           adress: "Street Test",
           number: 99,
@@ -35,11 +35,11 @@ defmodule Barbertime.Barber.BarbersShop do
           barber_id: Ecto.UUID.autogenerate())
   """
 
-  @spec create_changeset(BarberShop.t(), map()) ::
+  @spec create_changeset(Shop.t(), map()) ::
           Ecto.Changeset.t() | {:error, Ecto.Changeset.t()}
-  def create_changeset(%BarberShop{} = barber, attrs \\ %{}) do
+  def create_changeset(%Shop{} = barber, attrs \\ %{}) do
     barber
-    |> BarberShop.changeset(attrs)
+    |> Shop.changeset(attrs)
   end
 
   @doc """
@@ -47,15 +47,15 @@ defmodule Barbertime.Barber.BarbersShop do
 
   ## Examples
 
-      iex> Barbertime.Barber.BarbersShop.get_barbershop_by_barber_id(Ecto.UUID.autogenerate())
+      iex> Barbertime.BarbersShop.get_barbershop_by_barber_id(Ecto.UUID.autogenerate())
       %barber{}
 
-      iex> Barbertime.Barber.BarbersShop.get_barbershop_by_barber_id("unknown_barber_id")
+      iex> Barbertime.BarbersShop.get_barbershop_by_barber_id("unknown_barber_id")
       nil
 
   """
   def get_barbershop_by_barber_id(barber_id) when is_binary(barber_id) do
-    Repo.get_by(BarberShop, barber_id: barber_id)
+    Repo.get_by(Shop, barber_id: barber_id)
   end
 
   @doc """
@@ -63,14 +63,14 @@ defmodule Barbertime.Barber.BarbersShop do
 
   ## Examples
 
-      iex> Barbertime.Barber.BarbersShop.get_all_barbershop_by_barber_id(Ecto.UUID.autogenerate())
+      iex> Barbertime.BarbersShop.get_all_barbershop_by_barber_id(Ecto.UUID.autogenerate())
       %barber{}
 
-      iex> Barbertime.Barber.BarbersShop.get_all_barbershop_by_barber_id("unknown_barber_id")
+      iex> Barbertime.BarbersShop.get_all_barbershop_by_barber_id("unknown_barber_id")
       nil
 
   """
   def get_all_barbershop_by_barber_id(barber_id) when is_binary(barber_id) do
-    Repo.all(BarberShop, barber_id: barber_id)
+    Repo.all(Shop, barber_id: barber_id)
   end
 end

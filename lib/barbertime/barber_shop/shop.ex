@@ -1,9 +1,10 @@
-defmodule Barbertime.Barber.Schema.BarberShop do
+defmodule Barbertime.BarberShop.Shop do
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Barbertime.Barber.Schema.{Barber, Service}
+  alias Barbertime.BarberAccount.Barber
+  alias Barbertime.BarberShop.Service
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),

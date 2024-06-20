@@ -1,7 +1,7 @@
 defmodule BarbertimeWeb.BarberRegistrationController do
   use BarbertimeWeb, :controller
 
-  alias Barbertime.Barber.Barbers
+  alias Barbertime.BarberAccount
 
   def create(conn, %{"_action" => "registered"} = params) do
     create(conn, params, "Account created successfully!")
@@ -14,7 +14,7 @@ defmodule BarbertimeWeb.BarberRegistrationController do
   defp create(conn, %{"barber" => barber_params}, info) do
     %{"email" => email, "password" => password} = barber_params
 
-    case Barbers.get_barber_by_email_and_password(email, password) do
+    case BarberAccount.get_barber_by_email_and_password(email, password) do
       nil ->
         conn
         |> put_flash(:error, "Invalid email or password")

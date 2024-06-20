@@ -2,20 +2,42 @@ defmodule BarbertimeWeb.PageLive do
   use BarbertimeWeb, :live_view
 
   def mount(_params, _session, socket) do
-    IO.inspect(socket)
-    {:ok, assign(socket, number: 7)}
+    email = Phoenix.Flash.get(socket.assigns.flash, :email)
+    form = to_form(%{"email" => email}, as: "barber")
+    {:ok, assign(socket, form: form), temporary_assigns: [form: form]}
   end
 
   def render(assigns) do
-    IO.inspect(assigns, label: :assings)
-
     ~H"""
-    <%= @number %>
-    <.button phx-click="add">Add</.button>
-    """
-  end
+    <div class="mx-auto max-w-sm">
+      <.header class="text-center">
+        Log in to Barber Account
+        <:subtitle>
+          Don't have an account?
+          <.link navigate={~p"/barbers/register"} class="font-semibold text-brand hover:underline">
+            Sign up
+          </.link>
+          for an account now.
+        </:subtitle>
+      </.header>
 
-  def handle_event("add", _params, socket) do
-    {:noreply, assign(socket, number: socket.assigns.number + 1)}
+      <.simple_form for={@form} id="login_form" action={~p"/barbers/log_in"} phx-update="ignore">
+        <.input field={@form[:email]} type="email" label="Email" required />
+        <.input field={@form[:password]} type="password" label="Password" required />
+
+        <:actions>
+          <.input field={@form[:remember_me]} type="checkbox" label="Keep me logged in" />
+          <.link href={~p"/barbers/reset_password"} class="text-sm font-semibold">
+            Forgot your password?
+          </.link>
+        </:actions>
+        <:actions>
+          <.button phx-disable-with="Logging in..." class="w-full">
+            Log in <span aria-hidden="true">→</span>
+          </.button>
+        </:actions>
+      </.simple_form>
+    </div>
+    """
   end
 end
