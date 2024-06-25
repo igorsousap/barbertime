@@ -1,9 +1,9 @@
-defmodule Barbertime.Barber.Schema.Service do
+defmodule Barbertime.BarberShop.Service do
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Barbertime.Barber.Schema.BarberShop
+  alias Barbertime.BarberShop.Shop
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
@@ -21,7 +21,7 @@ defmodule Barbertime.Barber.Schema.Service do
     field(:price, :decimal)
     field(:duration, :integer)
 
-    belongs_to(:barber_shop, BarberShop, type: :binary_id)
+    belongs_to(:barber_shop, Shop, type: :binary_id)
 
     timestamps()
   end
@@ -34,16 +34,13 @@ defmodule Barbertime.Barber.Schema.Service do
           name: "Hair",
           price: 11.59,
           duration: 30,
-          id_barber_shop: Ecto.UUID.autogenerate()
+          barber_shop_id: Ecto.UUID.autogenerate()
            })
   """
 
   @spec changeset(:__MODULE__.t(), map()) :: Ecto.Changeset.t()
   def changeset(service \\ %__MODULE__{}, attrs) do
-    IO.inspect(attrs, label: :changeset_attrs)
-
     service
-    |> IO.inspect(label: :changeset_verify)
     |> cast(attrs, @fields)
     |> validate_required(@fields)
     |> validate_price()

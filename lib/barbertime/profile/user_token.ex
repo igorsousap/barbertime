@@ -1,7 +1,7 @@
-defmodule Barbertime.BarberAccount.BarberToken do
+defmodule Barbertime.Profile.UserToken do
   use Ecto.Schema
   import Ecto.Query
-  alias Barbertime.BarberAccount.BarberToken
+  alias Barbertime.Profile.UserToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -13,11 +13,11 @@ defmodule Barbertime.BarberAccount.BarberToken do
   @change_email_validity_in_days 7
   @session_validity_in_days 60
 
-  schema "barbers_tokens" do
+  schema "users_tokens" do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :barber, Barbertime.BarberAccount.Barber, type: :binary_id
+    belongs_to :user, Barbertime.Profile.User
 
     timestamps(updated_at: false)
   end
@@ -34,22 +34,22 @@ defmodule Barbertime.BarberAccount.BarberToken do
   valid indefinitely, unless you change the signing/encryption
   salt.
 
-  Therefore, storing them allows individual barber
+  Therefore, storing them allows individual user
   sessions to be expired. The token system can also be extended
   to store additional data, such as the device used for logging in.
   You could then use this information to display all valid sessions
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
-  def build_session_token(barber) do
+  def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size)
-    {token, %BarberToken{token: token, context: "session", barber_id: barber.id}}
+    {token, %UserToken{token: token, context: "session", user_id: user.id}}
   end
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the barber found by the token, if any.
+  The query returns the user found by the token, if any.
 
   The token is valid if it matches the value in the database and it has
   not expired (after @session_validity_in_days).
@@ -57,17 +57,17 @@ defmodule Barbertime.BarberAccount.BarberToken do
   def verify_session_token_query(token) do
     query =
       from token in by_token_and_context_query(token, "session"),
-        join: barber in assoc(token, :barber),
+        join: user in assoc(token, :user),
         where: token.inserted_at > ago(@session_validity_in_days, "day"),
-        select: barber
+        select: user
 
     {:ok, query}
   end
 
   @doc """
-  Builds a token and its hash to be delivered to the barber's email.
+  Builds a token and its hash to be delivered to the user's email.
 
-  The non-hashed token is sent to the barber email while the
+  The non-hashed token is sent to the user email while the
   hashed part is stored in the database. The original token cannot be reconstructed,
   which means anyone with read-only access to the database cannot directly use
   the token in the application to gain access. Furthermore, if the user changes
@@ -77,27 +77,27 @@ defmodule Barbertime.BarberAccount.BarberToken do
   Users can easily adapt the existing code to provide other types of delivery methods,
   for example, by phone numbers.
   """
-  def build_email_token(barber, context) do
-    build_hashed_token(barber, context, barber.email)
+  def build_email_token(user, context) do
+    build_hashed_token(user, context, user.email)
   end
 
-  defp build_hashed_token(barber, context, sent_to) do
+  defp build_hashed_token(user, context, sent_to) do
     token = :crypto.strong_rand_bytes(@rand_size)
     hashed_token = :crypto.hash(@hash_algorithm, token)
 
     {Base.url_encode64(token, padding: false),
-     %BarberToken{
+     %UserToken{
        token: hashed_token,
        context: context,
        sent_to: sent_to,
-       barber_id: barber.id
+       user_id: user.id
      }}
   end
 
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the barber found by the token, if any.
+  The query returns the user found by the token, if any.
 
   The given token is valid if it matches its hashed counterpart in the
   database and the user email has not changed. This function also checks
@@ -115,9 +115,9 @@ defmodule Barbertime.BarberAccount.BarberToken do
 
         query =
           from token in by_token_and_context_query(hashed_token, context),
-            join: barber in assoc(token, :barber),
-            where: token.inserted_at > ago(^days, "day") and token.sent_to == barber.email,
-            select: barber
+            join: user in assoc(token, :user),
+            where: token.inserted_at > ago(^days, "day") and token.sent_to == user.email,
+            select: user
 
         {:ok, query}
 
@@ -132,9 +132,9 @@ defmodule Barbertime.BarberAccount.BarberToken do
   @doc """
   Checks if the token is valid and returns its underlying lookup query.
 
-  The query returns the barber found by the token, if any.
+  The query returns the user found by the token, if any.
 
-  This is used to validate requests to change the barber
+  This is used to validate requests to change the user
   email. It is different from `verify_email_token_query/2` precisely because
   `verify_email_token_query/2` validates the email has not changed, which is
   the starting point by this function.
@@ -163,17 +163,17 @@ defmodule Barbertime.BarberAccount.BarberToken do
   Returns the token struct for the given token value and context.
   """
   def by_token_and_context_query(token, context) do
-    from BarberToken, where: [token: ^token, context: ^context]
+    from UserToken, where: [token: ^token, context: ^context]
   end
 
   @doc """
-  Gets all tokens for the given barber for the given contexts.
+  Gets all tokens for the given user for the given contexts.
   """
-  def by_barber_and_contexts_query(barber, :all) do
-    from t in BarberToken, where: t.barber_id == ^barber.id
+  def by_user_and_contexts_query(user, :all) do
+    from t in UserToken, where: t.user_id == ^user.id
   end
 
-  def by_barber_and_contexts_query(barber, [_ | _] = contexts) do
-    from t in BarberToken, where: t.barber_id == ^barber.id and t.context in ^contexts
+  def by_user_and_contexts_query(user, [_ | _] = contexts) do
+    from t in UserToken, where: t.user_id == ^user.id and t.context in ^contexts
   end
 end

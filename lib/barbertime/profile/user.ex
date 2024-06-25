@@ -1,37 +1,34 @@
-defmodule Barbertime.BarberAccount.Barber do
+defmodule Barbertime.Profile.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Barbertime.BarberShop.Shop
+  alias Barbertime.Profile.Schedule
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
-          first_name: String.t(),
-          last_name: String.t(),
           email: String.t(),
           password: String.t(),
           hashed_password: String.t(),
           confirmed_at: NaiveDateTime.t()
         }
 
-  @fields ~w(first_name last_name email password)a
+  @fields ~w(email password)a
 
   @primary_key {:id, :binary_id, autogenerate: true}
-  schema "barbers" do
+
+  schema "users" do
     field :email, :string
-    field :first_name, :string
-    field :last_name, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
 
-    has_one(:barber_shop, Shop)
+    has_many(:schedules, Schedule)
 
     timestamps(type: :utc_datetime)
   end
 
   @doc """
-  A barber changeset for registration.
+  A user changeset for registration.
 
   It is important to validate the length of both email and password.
   Otherwise databases may truncate the email without warnings, which
@@ -53,8 +50,8 @@ defmodule Barbertime.BarberAccount.Barber do
       submitting the form), this option can be set to `false`.
       Defaults to `true`.
   """
-  def registration_changeset(barber, attrs, opts \\ []) do
-    barber
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
     |> cast(attrs, @fields)
     |> validate_email(opts)
     |> validate_password(opts)
@@ -107,12 +104,12 @@ defmodule Barbertime.BarberAccount.Barber do
   end
 
   @doc """
-  A barber changeset for changing the email.
+  A user changeset for changing the email.
 
   It requires the email to change otherwise an error is added.
   """
-  def email_changeset(barber, attrs, opts \\ []) do
-    barber
+  def email_changeset(user, attrs, opts \\ []) do
+    user
     |> cast(attrs, [:email])
     |> validate_email(opts)
     |> case do
@@ -122,7 +119,7 @@ defmodule Barbertime.BarberAccount.Barber do
   end
 
   @doc """
-  A barber changeset for changing the password.
+  A user changeset for changing the password.
 
   ## Options
 
@@ -133,8 +130,8 @@ defmodule Barbertime.BarberAccount.Barber do
       validations on a LiveView form), this option can be set to `false`.
       Defaults to `true`.
   """
-  def password_changeset(barber, attrs, opts \\ []) do
-    barber
+  def password_changeset(user, attrs, opts \\ []) do
+    user
     |> cast(attrs, [:password])
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
@@ -143,21 +140,18 @@ defmodule Barbertime.BarberAccount.Barber do
   @doc """
   Confirms the account by setting `confirmed_at`.
   """
-  def confirm_changeset(barber) do
+  def confirm_changeset(user) do
     now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-    change(barber, confirmed_at: now)
+    change(user, confirmed_at: now)
   end
 
   @doc """
   Verifies the password.
 
-  If there is no barber or the barber doesn't have a password, we call
+  If there is no user or the user doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
-  def valid_password?(
-        %Barbertime.BarberAccount.Barber{hashed_password: hashed_password},
-        password
-      )
+  def valid_password?(%Barbertime.Profile.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
   end

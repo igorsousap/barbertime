@@ -2,6 +2,8 @@ defmodule BarbertimeWeb.Router do
   alias BarbertimeWeb.BarberPageLive
   use BarbertimeWeb, :router
 
+  import BarbertimeWeb.UserAuth
+
   import BarbertimeWeb.BarberAuth
 
   pipeline :browser do
@@ -11,11 +13,18 @@ defmodule BarbertimeWeb.Router do
     plug :put_root_layout, html: {BarbertimeWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_user
     plug :fetch_current_barber
   end
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  scope "/", BarbertimeWeb do
+    pipe_through [:browser, :require_authenticated_barber]
+
+    live "/barber/dashboard", BarberDashboardLive
   end
 
   scope "/", BarbertimeWeb do
@@ -83,6 +92,44 @@ defmodule BarbertimeWeb.Router do
       on_mount: [{BarbertimeWeb.BarberAuth, :mount_current_barber}] do
       live "/barbers/confirm/:token", BarberConfirmationLive, :edit
       live "/barbers/confirm", BarberConfirmationInstructionsLive, :new
+    end
+  end
+
+  ## Authentication routes
+
+  scope "/", BarbertimeWeb do
+    pipe_through [:browser, :redirect_if_user_is_authenticated]
+
+    live_session :redirect_if_user_is_authenticated,
+      on_mount: [{BarbertimeWeb.UserAuth, :redirect_if_user_is_authenticated}] do
+      live "/users/register", UserRegistrationLive, :new
+      live "/users/log_in", UserLoginLive, :new
+      live "/users/reset_password", UserForgotPasswordLive, :new
+      live "/users/reset_password/:token", UserResetPasswordLive, :edit
+    end
+
+    post "/users/log_in", UserSessionController, :create
+  end
+
+  scope "/", BarbertimeWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_authenticated_user,
+      on_mount: [{BarbertimeWeb.UserAuth, :ensure_authenticated}] do
+      live "/users/settings", UserSettingsLive, :edit
+      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+    end
+  end
+
+  scope "/", BarbertimeWeb do
+    pipe_through [:browser]
+
+    delete "/users/log_out", UserSessionController, :delete
+
+    live_session :current_user,
+      on_mount: [{BarbertimeWeb.UserAuth, :mount_current_user}] do
+      live "/users/confirm/:token", UserConfirmationLive, :edit
+      live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
   end
 end

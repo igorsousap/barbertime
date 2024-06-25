@@ -1,20 +1,20 @@
-defmodule BarbertimeWeb.BarberAuth do
+defmodule BarbertimeWeb.UserAuth do
   use BarbertimeWeb, :verified_routes
 
   import Plug.Conn
   import Phoenix.Controller
 
-  alias Barbertime.BarberAccount
+  alias Barbertime.Profile
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
-  # the token expiry itself in BarberToken.
+  # the token expiry itself in UserToken.
   @max_age 60 * 60 * 24 * 60
-  @remember_me_cookie "_barbertime_web_barber_remember_me"
+  @remember_me_cookie "_barbertime_web_user_remember_me"
   @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
 
   @doc """
-  Logs the barber in.
+  Logs the user in.
 
   It renews the session ID and clears the whole session
   to avoid fixation attacks. See the renew_session
@@ -25,15 +25,15 @@ defmodule BarbertimeWeb.BarberAuth do
   disconnected on log out. The line can be safely removed
   if you are not using LiveView.
   """
-  def log_in_barber(conn, barber, params \\ %{}) do
-    token = BarberAccount.generate_barber_session_token(barber)
-    barber_return_to = get_session(conn, :barber_return_to)
+  def log_in_user(conn, user, params \\ %{}) do
+    token = Profile.generate_user_session_token(user)
+    user_return_to = get_session(conn, :user_return_to)
 
     conn
     |> renew_session()
     |> put_token_in_session(token)
     |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: barber_return_to || signed_in_path(conn))
+    |> redirect(to: user_return_to || signed_in_path(conn))
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
@@ -68,13 +68,13 @@ defmodule BarbertimeWeb.BarberAuth do
   end
 
   @doc """
-  Logs the barber out.
+  Logs the user out.
 
   It clears all session data for safety. See renew_session.
   """
-  def log_out_barber(conn) do
-    barber_token = get_session(conn, :barber_token)
-    barber_token && BarberAccount.delete_barber_session_token(barber_token)
+  def log_out_user(conn) do
+    user_token = get_session(conn, :user_token)
+    user_token && Profile.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       BarbertimeWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
@@ -87,17 +87,17 @@ defmodule BarbertimeWeb.BarberAuth do
   end
 
   @doc """
-  Authenticates the barber by looking into the session
+  Authenticates the user by looking into the session
   and remember me token.
   """
-  def fetch_current_barber(conn, _opts) do
-    {barber_token, conn} = ensure_barber_token(conn)
-    barber = barber_token && BarberAccount.get_barber_by_session_token(barber_token)
-    assign(conn, :current_barber, barber)
+  def fetch_current_user(conn, _opts) do
+    {user_token, conn} = ensure_user_token(conn)
+    user = user_token && Profile.get_user_by_session_token(user_token)
+    assign(conn, :current_user, user)
   end
 
-  defp ensure_barber_token(conn) do
-    if token = get_session(conn, :barber_token) do
+  defp ensure_user_token(conn) do
+    if token = get_session(conn, :user_token) do
       {token, conn}
     else
       conn = fetch_cookies(conn, signed: [@remember_me_cookie])
@@ -111,82 +111,82 @@ defmodule BarbertimeWeb.BarberAuth do
   end
 
   @doc """
-  Handles mounting and authenticating the current_barber in LiveViews.
+  Handles mounting and authenticating the current_user in LiveViews.
 
   ## `on_mount` arguments
 
-    * `:mount_current_barber` - Assigns current_barber
-      to socket assigns based on barber_token, or nil if
-      there's no barber_token or no matching barber.
+    * `:mount_current_user` - Assigns current_user
+      to socket assigns based on user_token, or nil if
+      there's no user_token or no matching user.
 
-    * `:ensure_authenticated` - Authenticates the barber from the session,
-      and assigns the current_barber to socket assigns based
-      on barber_token.
-      Redirects to login page if there's no logged barber.
+    * `:ensure_authenticated` - Authenticates the user from the session,
+      and assigns the current_user to socket assigns based
+      on user_token.
+      Redirects to login page if there's no logged user.
 
-    * `:redirect_if_barber_is_authenticated` - Authenticates the barber from the session.
-      Redirects to signed_in_path if there's a logged barber.
+    * `:redirect_if_user_is_authenticated` - Authenticates the user from the session.
+      Redirects to signed_in_path if there's a logged user.
 
   ## Examples
 
   Use the `on_mount` lifecycle macro in LiveViews to mount or authenticate
-  the current_barber:
+  the current_user:
 
       defmodule BarbertimeWeb.PageLive do
         use BarbertimeWeb, :live_view
 
-        on_mount {BarbertimeWeb.BarberAuth, :mount_current_barber}
+        on_mount {BarbertimeWeb.UserAuth, :mount_current_user}
         ...
       end
 
   Or use the `live_session` of your router to invoke the on_mount callback:
 
-      live_session :authenticated, on_mount: [{BarbertimeWeb.BarberAuth, :ensure_authenticated}] do
+      live_session :authenticated, on_mount: [{BarbertimeWeb.UserAuth, :ensure_authenticated}] do
         live "/profile", ProfileLive, :index
       end
   """
-  def on_mount(:mount_current_barber, _params, session, socket) do
-    {:cont, mount_current_barber(socket, session)}
+  def on_mount(:mount_current_user, _params, session, socket) do
+    {:cont, mount_current_user(socket, session)}
   end
 
   def on_mount(:ensure_authenticated, _params, session, socket) do
-    socket = mount_current_barber(socket, session)
+    socket = mount_current_user(socket, session)
 
-    if socket.assigns.current_barber do
+    if socket.assigns.current_user do
       {:cont, socket}
     else
       socket =
         socket
         |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/barbers/log_in")
+        |> Phoenix.LiveView.redirect(to: ~p"/users/log_in")
 
       {:halt, socket}
     end
   end
 
-  def on_mount(:redirect_if_barber_is_authenticated, _params, session, socket) do
-    socket = mount_current_barber(socket, session)
+  def on_mount(:redirect_if_user_is_authenticated, _params, session, socket) do
+    socket = mount_current_user(socket, session)
 
-    if socket.assigns.current_barber do
+    if socket.assigns.current_user do
       {:halt, Phoenix.LiveView.redirect(socket, to: signed_in_path(socket))}
     else
       {:cont, socket}
     end
   end
 
-  defp mount_current_barber(socket, session) do
-    Phoenix.Component.assign_new(socket, :current_barber, fn ->
-      if barber_token = session["barber_token"] do
-        BarberAccount.get_barber_by_session_token(barber_token)
+  defp mount_current_user(socket, session) do
+    Phoenix.Component.assign_new(socket, :current_user, fn ->
+      if user_token = session["user_token"] do
+        Profile.get_user_by_session_token(user_token)
       end
     end)
   end
 
   @doc """
-  Used for routes that require the barber to not be authenticated.
+  Used for routes that require the user to not be authenticated.
   """
-  def redirect_if_barber_is_authenticated(conn, _opts) do
-    if conn.assigns[:current_barber] do
+  def redirect_if_user_is_authenticated(conn, _opts) do
+    if conn.assigns[:current_user] do
       conn
       |> redirect(to: signed_in_path(conn))
       |> halt()
@@ -196,34 +196,34 @@ defmodule BarbertimeWeb.BarberAuth do
   end
 
   @doc """
-  Used for routes that require the barber to be authenticated.
+  Used for routes that require the user to be authenticated.
 
-  If you want to enforce the barber email is confirmed before
+  If you want to enforce the user email is confirmed before
   they use the application at all, here would be a good place.
   """
-  def require_authenticated_barber(conn, _opts) do
-    if conn.assigns[:current_barber] do
+  def require_authenticated_user(conn, _opts) do
+    if conn.assigns[:current_user] do
       conn
     else
       conn
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
-      |> redirect(to: ~p"/barbers/log_in")
+      |> redirect(to: ~p"/users/log_in")
       |> halt()
     end
   end
 
   defp put_token_in_session(conn, token) do
     conn
-    |> put_session(:barber_token, token)
-    |> put_session(:live_socket_id, "barbers_sessions:#{Base.url_encode64(token)}")
+    |> put_session(:user_token, token)
+    |> put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(token)}")
   end
 
   defp maybe_store_return_to(%{method: "GET"} = conn) do
-    put_session(conn, :barber_return_to, current_path(conn))
+    put_session(conn, :user_return_to, current_path(conn))
   end
 
   defp maybe_store_return_to(conn), do: conn
 
-  defp signed_in_path(_conn), do: ~p"/barber/dashboard"
+  defp signed_in_path(_conn), do: ~p"/"
 end
