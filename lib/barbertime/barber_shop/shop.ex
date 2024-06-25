@@ -1,9 +1,10 @@
-defmodule Barbertime.Barber.Schema.BarberShop do
+defmodule Barbertime.BarberShop.Shop do
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  alias Barbertime.Barber.Schema.{Barber, Service}
+  alias Barbertime.BarberAccount.Barber
+  alias Barbertime.BarberShop.Service
 
   @type t :: %__MODULE__{
           id: Ecto.UUID.t(),
@@ -53,9 +54,9 @@ defmodule Barbertime.Barber.Schema.BarberShop do
     barber_shop
     |> cast(attrs, @fields)
     |> validate_required(@fields)
-    |> unique_constraint([:name_store], name: :barber_shop_name_index)
-    |> unique_constraint([:cnpj], name: :barber_shop_cnpj_index)
-    |> foreign_key_constraint(:barber_id, name: :barbershop_barber_id_fkey)
+    |> unique_constraint(:name_store, name: :barber_shop_name_index)
+    |> unique_constraint(:cnpj, name: :barber_shop_cnpj_index)
+    |> unique_constraint(:barber_id, name: :barbershop_barber_id_fkey)
     |> validate_cnpj()
     |> validate_format(:cep, ~r/^\d{5}-\d{3}$/, message: "invalid cep")
     |> validate_format(:phone, ~r/^\d{2}\d{4,5}\d{4}$/, message: "invalid phone")

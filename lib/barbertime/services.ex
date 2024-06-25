@@ -1,6 +1,6 @@
 defmodule Barbertime.Barber.Services do
   alias Barbertime.Repo
-  alias Barbertime.Barber.Schema.Service
+  alias Barbertime.BarberShop.Service
 
   @doc """
   Receive a map to register a barber shop on the database
@@ -14,11 +14,8 @@ defmodule Barbertime.Barber.Services do
   """
   @spec create(map()) :: {:ok, Service.t()} | {:error, Ecto.Changeset.t()}
   def create(attrs) do
-    IO.inspect(attrs)
-
     attrs
     |> Service.changeset()
-    |> IO.inspect(label: :changeset)
     |> Repo.insert()
   end
 
