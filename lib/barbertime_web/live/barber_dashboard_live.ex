@@ -1,8 +1,6 @@
 defmodule BarbertimeWeb.BarberDashboardLive do
   use BarbertimeWeb, :live_view
 
-  alias Barbertime.BarbersShop
-
   def mount(_params, _session, socket) do
     {:ok, socket}
   end

@@ -37,10 +37,7 @@ defmodule Barbertime.BarbersShop do
 
   @spec create_changeset(Shop.t(), map()) ::
           Ecto.Changeset.t() | {:error, Ecto.Changeset.t()}
-  def create_changeset(%Shop{} = barber, attrs \\ %{}) do
-    barber
-    |> Shop.changeset(attrs)
-  end
+  def create_changeset(%Shop{} = barber, attrs \\ %{}), do: Shop.changeset(barber, attrs)
 
   @doc """
   Gets a barber shop by barber_id.

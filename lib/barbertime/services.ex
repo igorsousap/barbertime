@@ -1,6 +1,6 @@
 defmodule Barbertime.Barber.Services do
   alias Barbertime.Repo
-  alias Barbertime.Barber.Schema.Service
+  alias Barbertime.BarberShop.Service
 
   @doc """
   Receive a map to register a barber shop on the database

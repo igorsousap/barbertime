@@ -54,8 +54,8 @@ defmodule Barbertime.BarberShop.Shop do
     barber_shop
     |> cast(attrs, @fields)
     |> validate_required(@fields)
-    |> unique_constraint([:name_store], name: :barber_shop_name_index)
-    |> unique_constraint([:cnpj], name: :barber_shop_cnpj_index)
+    |> unique_constraint(:name_store, name: :barber_shop_name_index)
+    |> unique_constraint(:cnpj, name: :barber_shop_cnpj_index)
     |> unique_constraint(:barber_id, name: :barbershop_barber_id_fkey)
     |> validate_cnpj()
     |> validate_format(:cep, ~r/^\d{5}-\d{3}$/, message: "invalid cep")

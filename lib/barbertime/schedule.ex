@@ -66,17 +66,23 @@ defmodule Barbertime.Schedule do
       iex> Barbertime.Schedule.get_by_barber_shop_id("1dfc7458-af0f-438d-8fe5-ae7272ae1559", ~D[2024-06-24], ~T[13:30:00], ~T[14:00:00])
 
   """
-  @spec get_by_barber_shop_id_and_time(Binary.t(), Date.t(), Time.t(), Time.t()) ::
+  @spec get_by_barber_shop_id_and_time(map()) ::
           {:ok, :schedule_free} | {:error, :schedule_buzy}
-  def get_by_barber_shop_id_and_time(barber_shop_id, date, time, time_service)
-      when is_binary(barber_shop_id) do
+  def get_by_barber_shop_id_and_time(schedule)
+      when is_map(schedule) do
     query =
       Schedule
       |> from()
       |> where(
         [se],
-        se.date == ^date and se.barber_shop_id == ^barber_shop_id and
-          fragment("? < ? AND ? > ?", se.time, ^time_service, se.time_service, ^time)
+        se.date == ^schedule.date and se.barber_shop_id == ^schedule.barber_shop_id and
+          fragment(
+            "? < ? AND ? > ?",
+            se.time,
+            ^schedule.time_service,
+            se.time_service,
+            ^schedule.time
+          )
       )
 
     case Repo.all(query) do
