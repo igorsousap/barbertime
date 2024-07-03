@@ -13,7 +13,7 @@ defmodule Barbertime.Profile.Schedule do
           service_id: Ecto.UUID.t()
         }
 
-  @fields ~w(date time status user_id barber_shop_id service_id)a
+  @fields ~w(date time time_service status user_id barber_shop_id service_id)a
   @status_types ~w(pending confirmed canceled)a
 
   schema "schedules" do

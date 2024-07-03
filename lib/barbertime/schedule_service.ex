@@ -1,5 +1,5 @@
 defmodule Barbertime.ScheduleService do
-  alias Barbertime.{BarberService, Schedule}
+  alias Barbertime.{BarberService, Scheduler}
 
   @spec scheduler(map()) ::
           {:ok, Schedule.t()} | {:error, Ecto.Changeset.t()} | {:error, :schedule_buzy}
@@ -10,9 +10,9 @@ defmodule Barbertime.ScheduleService do
       |> get_time_service()
       |> build_schedule()
 
-    case Schedule.get_by_barber_shop_id_and_time(schedule_updated) do
+    case Scheduler.get_by_barber_shop_id_and_time(schedule_updated) do
       {:ok, :schedule_free} ->
-        Schedule.create(schedule_updated)
+        Scheduler.create(schedule_updated)
 
       {:error, :schedule_buzy} ->
         {:error, :schedule_buzy}

@@ -22,6 +22,23 @@ defmodule Barbertime.BarberService do
   end
 
   @doc """
+  Receive a map to register a service on the database
+  ## Examples
+      iex> Barbertime.BarberService.create(
+          %{
+          name: "Hair",
+          price: 11.59,
+          duration: 30,
+          barber_shop_id: "0248ae1e-526a-4c2c-b611-bd320a119b08"}
+           )
+  """
+  @spec create_changeset(map()) :: Ecto.Changeset.t() | {:error, Ecto.Changeset.t()}
+  def create_changeset(%Service{} = service, attrs \\ %{}) do
+    service
+    |> Service.changeset(attrs)
+  end
+
+  @doc """
   Receive a id shop to lsit all services from the database
   ## Examples
       iex> Barbertime.BarberService.list_all(
@@ -29,7 +46,7 @@ defmodule Barbertime.BarberService do
            )
   """
   @spec list_all(Binary.t()) :: List.t() | nil
-  def list_all(barber_shop_id) do
+  def list_all(barber_shop_id \\ "non_id_existing") do
     Service
     |> from()
     |> where([se], se.barber_shop_id == ^barber_shop_id)
