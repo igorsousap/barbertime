@@ -1,4 +1,4 @@
-defmodule Barbertime.Schedule do
+defmodule Barbertime.Scheduler do
   import Ecto.Query
   alias Barbertime.Repo
   alias Barbertime.Profile.Schedule
@@ -6,13 +6,13 @@ defmodule Barbertime.Schedule do
   @doc """
   Receive a map to register appointment on the database
   ## Examples
-      iex> Barbertime.Schedule.create( %{
-          date: "2024-07-24",
+      iex> Barbertime.Scheduler.create( %{
+          date: "2024-07-01",
           time: "13:30:00",
-          time_service: "14:00:00"
-          user_id: "5f400610-dac7-4bd0-8673-a7c0c7ce6f6b",
-          service_id: "4f6e71db-8379-49c9-8999-e9802467a0fb",
-          barber_shop_id: "0248ae1e-526a-4c2c-b611-bd320a119b08"
+          time_service: "14:00:00",
+          user_id: "0f4d68ca-4cd1-49d9-8ace-2722d0c69bd1",
+          service_id: "5a2589f8-ae6a-46a7-b266-cef6d4a04036",
+          barber_shop_id: "0aedbe7c-d65c-4ed3-ad79-6f2c85a15b4a"
            })
   """
   @spec create(map()) :: {:ok, Schedule.t()} | {:error, Ecto.Changeset.t()}
@@ -36,8 +36,14 @@ defmodule Barbertime.Schedule do
   """
   @spec get_all_by_barber_shop_id(Binary.t()) ::
           List.t() | []
-  def get_all_by_barber_shop_id(barber_shop_id) when is_binary(barber_shop_id) do
-    Repo.all(Schedule, barber_shop_id: barber_shop_id)
+  def get_all_by_barber_shop_id(barber_shop_id \\ "non_id_existing")
+      when is_binary(barber_shop_id) do
+    today = Date.utc_today()
+
+    Schedule
+    |> from()
+    |> where([se], se.date > ^today and se.status != :canceled)
+    |> Repo.all(barber_shop_id: barber_shop_id)
   end
 
   @doc """

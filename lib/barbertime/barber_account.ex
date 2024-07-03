@@ -23,7 +23,7 @@ defmodule Barbertime.BarberAccount do
 
   """
   def get_barber_by_email(email) when is_binary(email) do
-    Repo.get_by(Barber, email: email)
+    Repo.get_by(Barber, email: email) |> Repo.preload(:barber_shop)
   end
 
   @doc """
@@ -40,7 +40,7 @@ defmodule Barbertime.BarberAccount do
   """
   def get_barber_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
-    barber = Repo.get_by(Barber, email: email)
+    barber = Repo.get_by(Barber, email: email) |> Repo.preload(:barber_shop)
     if Barber.valid_password?(barber, password), do: barber
   end
 
@@ -58,7 +58,7 @@ defmodule Barbertime.BarberAccount do
       ** (Ecto.NoResultsError)
 
   """
-  def get_barber!(id), do: Repo.get!(Barber, id)
+  def get_barber!(id), do: Repo.get!(Barber, id) |> Repo.preload(:barber_shop)
 
   ## Barber registration
 
@@ -236,7 +236,7 @@ defmodule Barbertime.BarberAccount do
   """
   def get_barber_by_session_token(token) do
     {:ok, query} = BarberToken.verify_session_token_query(token)
-    Repo.one(query)
+    Repo.one(query) |> Repo.preload(:barber_shop)
   end
 
   @doc """

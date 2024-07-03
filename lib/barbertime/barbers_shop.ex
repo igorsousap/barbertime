@@ -52,9 +52,12 @@ defmodule Barbertime.BarbersShop do
 
   """
   @spec get_barbershop_by_barber_id(Binary.t()) ::
-          %Shop{} | nil
-  def get_barbershop_by_barber_id(barber_id) when is_binary(barber_id) do
-    Repo.get_by(Shop, barber_id: barber_id)
+          %Shop{} | []
+  def get_barbershop_by_barber_id(barber_id \\ nil) when is_binary(barber_id) do
+    case barber_id do
+      nil -> []
+      barber_id -> Repo.all(Shop, barber_id: barber_id)
+    end
   end
 
   @doc """
